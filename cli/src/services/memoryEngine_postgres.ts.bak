@@ -1,0 +1,505 @@
+import { Pool } from 'pg';
+import * as path from 'path';
+import * as fs from 'fs-extra';
+import { v4 as uuidv4 } from 'uuid';
+
+// Neon PostgreSQL configuration
+const DB_CONFIG = {
+  connectionString: 'postgresql://neondb_owner:npg_IDjRgbGe87mP@ep-jolly-sun-ae0n4gej-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require',
+  ssl: {
+    rejectUnauthorized: false
+  }
+};
+
+// Removed subscription interfaces - not needed for local development
+
+// Core interfaces for memory system
+export interface ProjectMemory {
+  id: string;
+  name: string;
+  rootPath: string;
+  createdAt: Date;
+  lastActive: Date;
+  conversations: Conversation[];
+  decisions: ArchitecturalDecision[];
+  patterns: CodePattern[];
+  preferences: UserPreferences;
+  fileHistory: FileChangeHistory[];
+}
+
+export interface Conversation {
+  id: string;
+  timestamp: Date;
+  aiAssistant: string;
+  context: ConversationContext;
+  messages: Message[];
+  outcomes: ConversationOutcome[];
+}
+
+export interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  metadata?: any;
+}
+
+export interface ArchitecturalDecision {
+  id: string;
+  timestamp: Date;
+  decision: string;
+  rationale: string;
+  alternatives: string[];
+  impact: string[];
+  filesAffected: string[];
+}
+
+export interface FileChangeHistory {
+  id: string;
+  filePath: string;
+  changeType: 'created' | 'modified' | 'deleted';
+  timestamp: Date;
+  conversationId?: string;
+}
+
+export interface CodePattern {
+  id: string;
+  pattern: string;
+  frequency: number;
+  context: string;
+}
+
+export interface UserPreferences {
+  codingStyle?: string;
+  preferredPatterns?: string[];
+  aiAssistantPreferences?: Record<string, any>;
+}
+
+export interface ConversationContext {
+  activeFile?: string;
+  selectedText?: string;
+  cursorPosition?: { line: number; column: number };
+  openFiles?: string[];
+}
+
+export interface ConversationOutcome {
+  type: 'code_generated' | 'decision_made' | 'problem_solved';
+  description: string;
+  filesModified?: string[];
+}
+
+export class MemoryEngine {
+  private pool: Pool | null = null;
+  private projectPath: string;
+
+  constructor(projectPath: string) {
+    this.projectPath = projectPath;
+  }
+
+  async initialize(): Promise<void> {
+    try {
+      this.pool = new Pool(DB_CONFIG);
+      await this.createTables();
+      console.log('Connected to PostgreSQL database successfully');
+    } catch (error) {
+      console.error('Failed to connect to PostgreSQL:', error);
+      throw error;
+    }
+  }
+
+  private async createTables(): Promise<void> {
+    const tables = [
+      `CREATE TABLE IF NOT EXISTS projects (
+        id VARCHAR(255) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        root_path TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        last_active TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS conversations (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) REFERENCES projects(id),
+        ai_assistant VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        context JSONB,
+        summary TEXT
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS messages (
+        id VARCHAR(255) PRIMARY KEY,
+        conversation_id VARCHAR(255) REFERENCES conversations(id),
+        role VARCHAR(50) NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        metadata JSONB
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS architectural_decisions (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) REFERENCES projects(id),
+        decision TEXT NOT NULL,
+        rationale TEXT,
+        alternatives JSONB,
+        impact JSONB,
+        files_affected JSONB,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS file_changes (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) REFERENCES projects(id),
+        file_path TEXT NOT NULL,
+        change_type VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        conversation_id VARCHAR(255) REFERENCES conversations(id)
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS code_patterns (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) REFERENCES projects(id),
+        pattern TEXT NOT NULL,
+        frequency INTEGER DEFAULT 1,
+        context TEXT
+      )`,
+      
+      `CREATE TABLE IF NOT EXISTS user_preferences (
+        id VARCHAR(255) PRIMARY KEY,
+        project_id VARCHAR(255) REFERENCES projects(id),
+        key VARCHAR(255) NOT NULL,
+        value TEXT
+      )`
+    ];
+
+    for (const table of tables) {
+      await this.runQuery(table);
+    }
+
+    // Create initial project record
+    const projectId = this.generateProjectId();
+    const projectName = path.basename(this.projectPath);
+    
+    await this.runQuery(
+      `INSERT INTO projects (id, name, root_path) VALUES ($1, $2, $3) 
+       ON CONFLICT (id) DO UPDATE SET 
+       name = EXCLUDED.name, 
+       root_path = EXCLUDED.root_path, 
+       last_active = CURRENT_TIMESTAMP`,
+      [projectId, projectName, this.projectPath]
+    );
+  }
+
+  private async runQuery(sql: string, params: any[] = []): Promise<any> {
+    if (!this.pool) {
+      throw new Error('Database not initialized');
+    }
+    const result = await this.pool.query(sql, params);
+    return result;
+  }
+
+  private async getQuery(sql: string, params: any[] = []): Promise<any> {
+    if (!this.pool) {
+      throw new Error('Database not initialized');
+    }
+    const result = await this.pool.query(sql, params);
+    return result.rows[0] || null;
+  }
+
+  private async allQuery(sql: string, params: any[] = []): Promise<any[]> {
+    if (!this.pool) {
+      throw new Error('Database not initialized');
+    }
+    const result = await this.pool.query(sql, params);
+    return result.rows;
+  }
+
+  async recordConversation(
+    aiAssistant: string,
+    messages: Message[],
+    context?: ConversationContext
+  ): Promise<string> {
+    const conversationId = uuidv4();
+    const projectId = this.generateProjectId();
+
+    // Insert conversation
+    await this.runQuery(
+      `INSERT INTO conversations (id, project_id, ai_assistant, context) VALUES ($1, $2, $3, $4)`,
+      [conversationId, projectId, aiAssistant, context || {}]
+    );
+
+    // Insert messages
+    for (const message of messages) {
+      await this.runQuery(
+        `INSERT INTO messages (id, conversation_id, role, content, metadata) VALUES ($1, $2, $3, $4, $5)`,
+        [message.id || uuidv4(), conversationId, message.role, message.content, message.metadata || {}]
+      );
+    }
+
+    // Update project last active
+    await this.updateProjectActivity();
+
+    return conversationId;
+  }
+
+  async recordArchitecturalDecision(decision: Omit<ArchitecturalDecision, 'id' | 'timestamp'>): Promise<void> {
+    const projectId = this.generateProjectId();
+    const decisionId = uuidv4();
+
+    await this.runQuery(
+      `INSERT INTO architectural_decisions (id, project_id, decision, rationale, alternatives, impact, files_affected) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        decisionId,
+        projectId,
+        decision.decision,
+        decision.rationale,
+        decision.alternatives,
+        decision.impact,
+        decision.filesAffected
+      ]
+    );
+
+    await this.updateProjectActivity();
+  }
+
+  async trackFileChange(filePath: string, changeType: 'created' | 'modified' | 'deleted', conversationId?: string): Promise<void> {
+    const projectId = this.generateProjectId();
+    const changeId = uuidv4();
+
+    await this.runQuery(
+      `INSERT INTO file_changes (id, project_id, file_path, change_type, conversation_id) VALUES ($1, $2, $3, $4, $5)`,
+      [changeId, projectId, filePath, changeType, conversationId]
+    );
+  }
+
+  async getProjectMemory(): Promise<ProjectMemory> {
+    const projectId = this.generateProjectId();
+    
+    // Get project info
+    const project = await this.getQuery(
+      `SELECT * FROM projects WHERE id = $1`,
+      [projectId]
+    );
+
+    // Get conversations with messages
+    const conversations = await this.allQuery(
+      `SELECT * FROM conversations WHERE project_id = $1 ORDER BY created_at DESC`,
+      [projectId]
+    );
+
+    const conversationsWithMessages = await Promise.all(
+      conversations.map(async (conv) => {
+        const messages = await this.allQuery(
+          `SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at`,
+          [conv.id]
+        );
+        
+        return {
+          id: conv.id,
+          timestamp: new Date(conv.created_at),
+          aiAssistant: conv.ai_assistant,
+          context: conv.context || {},
+          messages: messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            metadata: msg.metadata || {}
+          })),
+          outcomes: [] // TODO: Implement outcomes tracking
+        };
+      })
+    );
+
+    // Get decisions
+    const decisions = await this.allQuery(
+      `SELECT * FROM architectural_decisions WHERE project_id = $1 ORDER BY created_at DESC`,
+      [projectId]
+    );
+
+    const parsedDecisions = decisions.map(decision => ({
+      id: decision.id,
+      timestamp: new Date(decision.created_at),
+      decision: decision.decision,
+      rationale: decision.rationale,
+      alternatives: decision.alternatives || [],
+      impact: decision.impact || [],
+      filesAffected: decision.files_affected || []
+    }));
+
+    // Get file history
+    const fileHistory = await this.allQuery(
+      `SELECT * FROM file_changes WHERE project_id = $1 ORDER BY created_at DESC LIMIT 100`,
+      [projectId]
+    );
+
+    const parsedFileHistory = fileHistory.map(file => ({
+      id: file.id,
+      filePath: file.file_path,
+      changeType: file.change_type,
+      timestamp: new Date(file.created_at),
+      conversationId: file.conversation_id
+    }));
+
+    return {
+      id: project.id,
+      name: project.name,
+      rootPath: project.root_path,
+      createdAt: new Date(project.created_at),
+      lastActive: new Date(project.last_active),
+      conversations: conversationsWithMessages,
+      decisions: parsedDecisions,
+      patterns: [], // TODO: Implement pattern recognition
+      preferences: {}, // TODO: Implement preferences
+      fileHistory: parsedFileHistory
+    };
+  }
+
+  async searchConversations(query: string): Promise<Conversation[]> {
+    const projectId = this.generateProjectId();
+    
+    const conversations = await this.allQuery(
+      `SELECT DISTINCT c.* FROM conversations c 
+       JOIN messages m ON c.id = m.conversation_id 
+       WHERE c.project_id = $1 AND (m.content ILIKE $2 OR c.summary ILIKE $3)
+       ORDER BY c.timestamp DESC`,
+      [projectId, `%${query}%`, `%${query}%`]
+    );
+
+    return Promise.all(
+      conversations.map(async (conv) => {
+        const messages = await this.allQuery(
+          `SELECT * FROM messages WHERE conversation_id = $1 ORDER BY created_at`,
+          [conv.id]
+        );
+        
+        return {
+          id: conv.id,
+          timestamp: new Date(conv.created_at),
+          aiAssistant: conv.ai_assistant,
+          context: conv.context || {},
+          messages: messages.map(msg => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            timestamp: new Date(msg.created_at),
+            metadata: msg.metadata || {}
+          })),
+          outcomes: []
+        };
+      })
+    );
+  }
+
+  async getStatistics() {
+    const projectId = this.generateProjectId();
+    
+    const conversationCount = await this.getQuery(
+      `SELECT COUNT(*) as count FROM conversations WHERE project_id = $1`,
+      [projectId]
+    );
+    
+    const messageCount = await this.getQuery(
+      `SELECT COUNT(*) as count FROM messages m 
+       JOIN conversations c ON m.conversation_id = c.id 
+       WHERE c.project_id = $1`,
+      [projectId]
+    );
+    
+    const decisionCount = await this.getQuery(
+      `SELECT COUNT(*) as count FROM architectural_decisions WHERE project_id = $1`,
+      [projectId]
+    );
+    
+    const fileCount = await this.getQuery(
+      `SELECT COUNT(DISTINCT file_path) as count FROM file_changes WHERE project_id = $1`,
+      [projectId]
+    );
+    
+    const lastActivity = await this.getQuery(
+      `SELECT last_active FROM projects WHERE id = $1`,
+      [projectId]
+    );
+
+    const dbSize = await this.getQuery(
+      `SELECT pg_size_pretty(pg_database_size(current_database())) as size`
+    );
+
+    return {
+      conversationCount: conversationCount.count,
+      messageCount: messageCount.count,
+      decisionCount: decisionCount.count,
+      fileCount: fileCount.count,
+      lastActivity: lastActivity?.last_active,
+      databaseSize: dbSize?.size || 'Unknown'
+    };
+  }
+
+  async performInitialScan(): Promise<void> {
+    // Scan project structure and record initial state
+    const files = await this.scanProjectFiles();
+    
+    for (const file of files) {
+      await this.trackFileChange(file, 'created');
+    }
+  }
+
+  async clearAllMemory(): Promise<void> {
+    const projectId = this.generateProjectId();
+    
+    const tables = ['messages', 'conversations', 'architectural_decisions', 'file_changes', 'code_patterns', 'user_preferences'];
+    
+    for (const table of tables) {
+      await this.runQuery(`DELETE FROM ${table} WHERE project_id = $1`, [projectId]);
+    }
+  }
+
+  private async scanProjectFiles(): Promise<string[]> {
+    const files: string[] = [];
+    const extensions = ['.js', '.ts', '.jsx', '.tsx', '.py', '.go', '.rs', '.java', '.cpp', '.c', '.h'];
+    
+    const scanDir = async (dir: string) => {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        const relativePath = path.relative(this.projectPath, fullPath);
+        
+        // Skip node_modules, .git, etc.
+        if (entry.name.startsWith('.') || entry.name === 'node_modules') {
+          continue;
+        }
+        
+        if (entry.isDirectory()) {
+          await scanDir(fullPath);
+        } else if (extensions.some(ext => entry.name.endsWith(ext))) {
+          files.push(relativePath);
+        }
+      }
+    };
+    
+    await scanDir(this.projectPath);
+    return files;
+  }
+
+  private async updateProjectActivity(): Promise<void> {
+    const projectId = this.generateProjectId();
+    await this.runQuery(
+      `UPDATE projects SET last_active = CURRENT_TIMESTAMP WHERE id = $1`,
+      [projectId]
+    );
+  }
+
+  private generateProjectId(): string {
+    const crypto = require('crypto');
+    return crypto.createHash('md5').update(this.projectPath).digest('hex').substring(0, 16);
+  }
+
+  async close(): Promise<void> {
+    if (this.pool) {
+      await this.pool.end();
+      this.pool = null;
+    }
+  }
+}

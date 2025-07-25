@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeContext Pro - AI Coding Assistant with Perfect Memory</title>
+    <meta name="description" content="Stop repeating yourself to AI assistants. CodeContext Pro remembers every conversation, decision, and code change - making your AI coding sessions 10x more productive.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://codecontext.pro/">
+    <meta property="og:title" content="CodeContext Pro - AI Coding Assistant with Perfect Memory">
+    <meta property="og:description" content="Stop repeating yourself to AI assistants. CodeContext Pro remembers every conversation, decision, and code change.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://codecontext.pro/">
+    <meta property="twitter:title" content="CodeContext Pro - AI Coding Assistant with Perfect Memory">
+    <meta property="twitter:description" content="Stop repeating yourself to AI assistants. CodeContext Pro remembers every conversation, decision, and code change.">
+    
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-brand">
+                <span class="logo">🧠</span>
+                <span class="brand-name">CodeContext Pro</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#demo">Demo</a>
+                <a href="#faq">FAQ</a>
+                <button class="cta-button-small">Start Free Trial</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                ⚡ Memory + Execution in 3ms
+            </div>
+            <h1 class="hero-title">
+                AI Coding with <span class="gradient-text">Perfect Memory</span> + <span class="gradient-text">Instant Execution</span>
+            </h1>
+            <p class="hero-subtitle">
+                The only AI coding tool that remembers everything AND tests code instantly. Docker sandbox execution in under 3ms + persistent memory across all conversations. Finally, AI that learns and validates.
+            </p>
+            <div class="hero-cta">
+                <button class="cta-button-primary" onclick="startTrial()">
+                    Start 7-Day Free Trial
+                </button>
+                <button class="cta-button-secondary" onclick="scrollToDemo()">
+                    Watch Demo
+                </button>
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-number">&lt;3ms</div>
+                    <div class="stat-label">Code Execution</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">85%+</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Memory Retention</div>
+                </div>
+            </div>
+        </div>
+        <div class="hero-demo">
+            <div class="demo-window">
+                <div class="demo-header">
+                    <div class="demo-controls">
+                        <span class="control red"></span>
+                        <span class="control yellow"></span>
+                        <span class="control green"></span>
+                    </div>
+                    <span class="demo-title">VS Code + Claude + CodeContext Pro</span>
+                </div>
+                <div class="demo-content">
+                    <div class="chat-message user">
+                        <div class="message-avatar">👨‍💻</div>
+                        <div class="message-content">
+                            Create a function to validate email addresses
+                        </div>
+                    </div>
+                    <div class="chat-message ai">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            I'll create an email validator using the regex pattern we established for your project. Let me test it in the sandbox:
+                            <div class="code-block">
+                                <div class="code-header">
+                                    <span>✅ Executed in 2.1ms</span>
+                                    <span class="success-rate">Success: 94%</span>
+                                </div>
+                                <pre><code>function validateEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// Tests passed: ✅ Valid emails ✅ Invalid emails</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="execution-stats">
+                        <span class="stat-item">⚡ 2.1ms execution</span>
+                        <span class="stat-item">🧠 Remembered project patterns</span>
+                        <span class="stat-item">✅ Auto-tested & verified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section class="problem">
+        <div class="section-content">
+            <h2 class="section-title">Why Current AI Coding Tools Are Broken</h2>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">🧠</div>
+                    <h3>Zero Memory</h3>
+                    <p>AI forgets your architecture, patterns, and decisions. Every conversation starts from scratch. No learning, no context retention.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🚫</div>
+                    <h3>No Code Validation</h3>
+                    <p>AI suggests code but can't test it. You're left guessing if the solution works or breaks your system.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">🔄</div>
+                    <h3>Fragmented Solutions</h3>
+                    <p>Memory tools, execution environments, and AI assistants are separate. No integration, no unified workflow.</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3>Slow Feedback Loops</h3>
+                    <p>Copy code → Switch to terminal → Run tests → Debug → Repeat. Minutes wasted on what should be instant validation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution">
+        <div class="section-content">
+            <h2 class="section-title">The First AI Tool That Remembers AND Executes</h2>
+            <p class="section-subtitle">Perfect memory + instant code validation in one unified system</p>
+            
+            <div class="solution-demo">
+                <div class="before-after">
+                    <div class="before">
+                        <h3>❌ Other AI Tools</h3>
+                        <div class="conversation-snippet">
+                            <div class="message">
+                                <strong>You:</strong> "Create a payment validation function"
+                            </div>
+                            <div class="message">
+                                <strong>AI:</strong> "Here's some code... [no memory of your patterns, can't test it, you have to manually validate]"
+                            </div>
+                            <div class="message">
+                                <strong>You:</strong> "Remember, we use Stripe and our custom validation logic..."
+                            </div>
+                        </div>
+                    </div>
+                    <div class="after">
+                        <h3>✅ CodeContext Pro</h3>
+                        <div class="conversation-snippet">
+                            <div class="message">
+                                <strong>You:</strong> "Create a payment validation function"
+                            </div>
+                            <div class="message">
+                                <strong>AI:</strong> "I'll create it using your Stripe integration pattern. Let me test it in the sandbox..."
+                                <div class="mini-execution">
+                                    <span class="execution-result">✅ Executed in 2.8ms | Tests passed | 91% success rate</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="section-content">
+            <h2 class="section-title">The Game-Changing Memory + Execution Combination</h2>
+            <div class="features-grid">
+                <div class="feature-card featured-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>3ms Code Execution</h3>
+                    <p>Docker sandbox spins up in under 3ms. Test JavaScript, Python, Go, Rust instantly. No setup, no waiting, just immediate validation.</p>
+                </div>
+                <div class="feature-card featured-card">
+                    <div class="feature-icon">🧠</div>
+                    <h3>Perfect Memory Retention</h3>
+                    <p>Every conversation, architectural decision, and code pattern remembered forever. AI learns your project like a human teammate.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">✅</div>
+                    <h3>85%+ Success Rate</h3>
+                    <p>AI-generated code tested automatically with high success rates. Catch errors before they reach your codebase.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔄</div>
+                    <h3>CI/CD Pipeline Simulation</h3>
+                    <p>Simulate your entire deployment pipeline in the sandbox. Test integrations, dependencies, and deployment scripts.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔍</div>
+                    <h3>Context-Aware Execution</h3>
+                    <p>Execution engine knows your project structure, dependencies, and patterns. Code runs in your exact environment.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Learning Analytics</h3>
+                    <p>Track which patterns work best, success rates by code type, and AI learning progression over time.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <div class="section-content">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-subtitle">One tool, unlimited productivity gains</p>
+            
+            <div class="pricing-cards">
+                <div class="pricing-card trial">
+                    <div class="pricing-header">
+                        <h3>Free Trial</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">0</span>
+                            <span class="period">/ 7 days</span>
+                        </div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Full memory features</li>
+                        <li>✅ Code execution engine</li>
+                        <li>✅ VS Code integration</li>
+                        <li>✅ Unlimited conversations</li>
+                        <li>✅ No credit card required</li>
+                    </ul>
+                    <button class="pricing-button trial-button" onclick="startTrial()">
+                        Start Free Trial
+                    </button>
+                </div>
+                
+                <div class="pricing-card pro featured">
+                    <div class="pricing-badge">Most Popular</div>
+                    <div class="pricing-header">
+                        <h3>CodeContext Pro</h3>
+                        <div class="price">
+                            <span class="currency">$</span>
+                            <span class="amount">149</span>
+                            <span class="period">/ year</span>
+                        </div>
+                        <div class="price-note">$12.42/month, billed annually</div>
+                    </div>
+                    <ul class="pricing-features">
+                        <li>✅ Everything in trial</li>
+                        <li>✅ Unlimited projects</li>
+                        <li>✅ Priority support</li>
+                        <li>✅ Early access to new features</li>
+                        <li>✅ Commercial usage license</li>
+                        <li>✅ Lifetime updates</li>
+                    </ul>
+                    <button class="pricing-button pro-button" onclick="purchase()">
+                        Get CodeContext Pro
+                    </button>
+                    <div class="money-back">30-day money-back guarantee</div>
+                </div>
+            </div>
+            
+            <div class="pricing-faq">
+                <h4>💡 Why annual pricing?</h4>
+                <p>AI coding is a long-term investment. Annual pricing ensures consistent tool access and lets us focus on building features instead of payment processing.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo-section">
+        <div class="section-content">
+            <h2 class="section-title">See CodeContext Pro in Action</h2>
+            <div class="demo-video">
+                <div class="video-placeholder">
+                    <div class="play-button" onclick="playDemo()">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <circle cx="30" cy="30" r="30" fill="rgba(255,255,255,0.1)"/>
+                            <path d="M25 20L40 30L25 40V20Z" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="demo-title">Watch: 3-Minute Demo</div>
+                    <div class="demo-subtitle">See how CodeContext Pro transforms AI coding workflows</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof -->
+    <section class="social-proof">
+        <div class="section-content">
+            <h2 class="section-title">Developers Love the Memory + Execution Combo</h2>
+            <div class="testimonials">
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        "The instant execution is insane. AI suggests code, tests it in 2ms, and I know it works before I even see it. Memory + execution = perfect workflow."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👨‍💻</div>
+                        <div class="author-info">
+                            <div class="author-name">Alex Chen</div>
+                            <div class="author-title">Senior Full-Stack Developer</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        "Finally, an AI that learns my patterns AND validates the code. 91% success rate on first try. This is the future of coding."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👩‍💻</div>
+                        <div class="author-info">
+                            <div class="author-name">Sarah Rodriguez</div>
+                            <div class="author-title">Tech Lead at StartupCo</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="testimonial">
+                    <div class="testimonial-content">
+                        "I used to spend 30% of my time explaining context and testing AI code. Now it's automatic. CodeContext Pro eliminated my biggest AI frustrations."
+                    </div>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">👨‍💻</div>
+                        <div class="author-info">
+                            <div class="author-name">Marcus Johnson</div>
+                            <div class="author-title">Indie Developer</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+        <div class="section-content">
+            <h2 class="section-title">Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <h3>How does CodeContext Pro work?</h3>
+                    <p>It runs locally on your machine and automatically captures conversations with AI assistants, architectural decisions, and file changes. All data stays on your computer.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Which AI assistants does it work with?</h3>
+                    <p>CodeContext Pro works with Claude, ChatGPT, GitHub Copilot Chat, and any AI assistant you use in VS Code.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Is my code data secure?</h3>
+                    <p>Absolutely. Everything runs locally on your machine. No code or conversations are sent to our servers. Your data never leaves your computer.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>Can I use it on multiple machines?</h3>
+                    <p>Your license works on one machine at a time. This prevents account sharing while allowing you to transfer between your work and personal computers.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>What if I'm not satisfied?</h3>
+                    <p>We offer a 30-day money-back guarantee. If CodeContext Pro doesn't dramatically improve your AI coding workflow, we'll refund your purchase.</p>
+                </div>
+                <div class="faq-item">
+                    <h3>How big can my project memory get?</h3>
+                    <p>There's no limit. CodeContext Pro uses SQLite for local storage, which can handle projects of any size efficiently.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="final-cta">
+        <div class="section-content">
+            <h2 class="cta-title">Ready to Stop Repeating Yourself?</h2>
+            <p class="cta-subtitle">Join thousands of developers who've transformed their AI coding workflow</p>
+            <div class="cta-buttons">
+                <button class="cta-button-primary large" onclick="startTrial()">
+                    Start Your Free 7-Day Trial
+                </button>
+                <div class="cta-note">No credit card required • 30-day money-back guarantee</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="logo">🧠</span>
+                <span class="brand-name">CodeContext Pro</span>
+            </div>
+            <div class="footer-links">
+                <a href="#privacy">Privacy Policy</a>
+                <a href="#terms">Terms of Service</a>
+                <a href="#support">Support</a>
+                <a href="#contact">Contact</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 CodeContext Pro. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
