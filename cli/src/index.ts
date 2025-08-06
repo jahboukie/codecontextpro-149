@@ -6,8 +6,6 @@ import { initCommand } from './commands/init';
 import { statusCommand } from './commands/status';
 import { memoryCommand } from './commands/memory';
 import { createExecuteCommand } from './commands/execute';
-import createLicenseCommand from './commands/license';
-import { LicenseManager } from './services/licenseManager';
 
 const program = new Command();
 
@@ -52,39 +50,7 @@ program
   .action(memoryCommand);
 
 program.addCommand(createExecuteCommand());
-program.addCommand(createLicenseCommand());
 
-// License validation middleware
-function validateLicense(command: string): boolean {
-  // Skip license validation for license-related commands
-  if (command === 'license' || process.argv.includes('license')) {
-    return true;
-  }
-
-  const validation = LicenseManager.validateLicense();
-  
-  if (!validation.valid) {
-    console.log('╔══════════════════════════════════════════════════════════════╗');
-    console.log('║                🔐 License Required                          ║');
-    console.log('╚══════════════════════════════════════════════════════════════╝');
-    console.log();
-    console.log('❌ ' + validation.reason);
-    console.log();
-    console.log('💡 To activate your license: codecontext-pro license activate');
-    console.log('💡 For a 7-day trial: codecontext-pro license trial');
-    console.log('💡 Visit https://codecontext.pro/pricing to purchase');
-    process.exit(1);
-  }
-
-  const license = validation.license!;
-  const daysLeft = LicenseManager.getDaysUntilExpiry(license);
-  
-  if (daysLeft <= 7) {
-    console.log(`⚠️  License expires in ${daysLeft} days. Renew at https://codecontext.pro`);
-  }
-
-  return true;
-}
 
 // Global error handling
 process.on('unhandledRejection', (reason, promise) => {
@@ -97,9 +63,6 @@ process.on('uncaughtException', (error) => {
   process.exit(1);
 });
 
-// Validate license before parsing commands
-const command = process.argv[2] || '';
-validateLicense(command);
 
 // Parse command line arguments
 program.parse();
